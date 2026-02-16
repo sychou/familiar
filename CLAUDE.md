@@ -5,8 +5,13 @@ File-based task runner for Obsidian. Watches a folder for markdown files, proces
 ## Project Structure
 
 ```
-dispatcher.py    # Main CLI: watches Jobs/, dispatches to Claude, manages lifecycle
-setup.sh         # Creates directories, checks dependencies
+src/familiar/
+├── __init__.py      # Version
+├── __main__.py      # python -m familiar
+├── cli.py           # argparse subcommands: run, init
+├── config.py        # TOML config loading, defaults, FamiliarConfig dataclass
+├── dispatcher.py    # Core processing (frontmatter, file lifecycle, Claude)
+└── watcher.py       # fswatch + polling watchers
 ```
 
 ## Runtime Directories
@@ -19,17 +24,27 @@ Default path: `~/Obsidian/System/Familiar/`
 - `Failed/` — Error cases (error written into file)
 - `system-prompt.md` — Optional context prepended to every task
 
+## Config
+
+`~/.config/familiar/config.toml` — created by `familiar init`:
+
+- `name` — Familiar's name (appears in logs and system prompt)
+- `vault_path` — Path to Obsidian vault directory
+- `timeout` — Max seconds for Claude to respond
+
+Precedence: CLI args > config.toml > built-in defaults
+
 ## Running
 
 ```bash
-python3 dispatcher.py [--vault-path PATH] [--poll] [--timeout SECONDS]
+familiar run [--name NAME] [--vault-path PATH] [--timeout SECONDS]
+familiar init
 ```
 
 ## Dependencies
 
-- Python 3.10+ (stdlib only, no pip packages)
+- Python 3.11+ (stdlib only, no pip packages)
 - Claude Code CLI (`claude --print`)
-- fswatch (optional, falls back to polling)
 
 ## Key Design Decisions
 
@@ -37,4 +52,4 @@ python3 dispatcher.py [--vault-path PATH] [--poll] [--timeout SECONDS]
 - All errors written into the file itself so they're visible in Obsidian
 - Frontmatter is auto-managed (iteration, status, last_run)
 - Filename collisions in Done/ resolved with `-1`, `-2` suffixes
-- 0.5s settle delay after fswatch event to let file finish writing
+- Polling watcher with 0.5s settle delay to let files finish writing

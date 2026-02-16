@@ -14,31 +14,54 @@ The idea is simple: your Obsidian vault becomes a lightweight job queue. No web 
 
 Each iteration builds on the last. Claude sees the full history, your reviewer notes, everything.
 
+## Install
+
+```bash
+uv pip install -e .
+```
+
 ## Setup
 
 ```bash
-./setup.sh
+familiar init
 ```
 
-This creates the directory structure at `~/Obsidian/System/Familiar/` and checks for dependencies.
+This creates `~/.config/familiar/config.toml` and the vault directory structure. Edit the config to set your familiar's name, vault path, and other options.
 
 ## Usage
 
 ```bash
-python3 dispatcher.py
+familiar run
 ```
 
 Options:
 
-- `--vault-path PATH` — Custom Familiar directory (default: `~/Obsidian/System/Familiar`)
-- `--poll` — Use polling instead of fswatch
+- `--name NAME` — Override your familiar's name
+- `--vault-path PATH` — Override Familiar directory
 - `--timeout SECONDS` — Claude CLI timeout (default: 300)
+
+## Config
+
+`~/.config/familiar/config.toml`:
+
+```toml
+# Name of your familiar (appears in logs and system prompt)
+name = "Familiar"
+
+# Path to Obsidian vault directory
+vault_path = "~/Obsidian/System/Familiar"
+
+# Max seconds for Claude to respond
+timeout = 300
+```
+
+CLI args override config file values.
 
 ## File format
 
 Input files are plain markdown. Frontmatter is optional on first run, Familiar manages it after that:
 
-```yaml
+```markdown
 ---
 iteration: 2
 status: done
@@ -46,22 +69,16 @@ last_run: 2025-02-16T14:30:00
 ---
 Research competitors to Guidewire ClaimCenter...
 
----
+> [!quote] Puck — Report 1 at 2025-02-16 14:00
+> [Claude's first output in a callout block]
 
-## Run 1
-*2025-02-16 14:00*
+Go deeper on Duck Creek's AI capabilities.
 
-[Claude's first output]
-
-> **Reviewer note:** Go deeper on Duck Creek's AI capabilities.
-
----
-
-## Run 2
-*2025-02-16 14:30*
-
-[Claude's second output incorporating feedback]
+> [!quote] Puck — Report 2 at 2025-02-16 14:30
+> [Claude's second output incorporating feedback]
 ```
+
+The human writes plain text. The familiar's responses are wrapped in Obsidian callout blocks, making it easy to tell who said what.
 
 ## System prompt
 
@@ -80,9 +97,8 @@ Drop a `system-prompt.md` in the Familiar root directory and its contents get pr
 
 ## Dependencies
 
-- Python 3.10+ (stdlib only)
+- Python 3.11+ (stdlib only)
 - [Claude Code CLI](https://github.com/anthropics/claude-code) (`npm install -g @anthropic-ai/claude-code`)
-- fswatch (optional, `brew install fswatch`, falls back to polling)
 
 ## Error handling
 
