@@ -117,7 +117,7 @@ def build_prompt(cfg: FamiliarConfig, meta: dict, body: str) -> str:
         parts.append(system_prompt.read_text().strip())
 
     # Build path boundary instructions
-    all_paths = [str(cfg.vault_path)] + cfg.allowed_paths
+    all_paths = [str(cfg.vault_root)] + cfg.allowed_paths
     path_list = "\n".join(f"- {p}" for p in all_paths)
 
     parts.append(
@@ -159,6 +159,11 @@ def process_file(filepath: Path, cfg: FamiliarConfig) -> None:
 
     content = processing.read_text()
     meta, body = parse_frontmatter(content)
+
+    # Add header if missing
+    if not body.lstrip().startswith("#"):
+        title = filepath.stem
+        body = f"# {title}\n\n{body}"
 
     # Increment iteration
     iteration = meta.get("iteration", 0) + 1
